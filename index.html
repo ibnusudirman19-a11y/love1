@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Rotating Love Heart with Music</title>
+    <style>
+        body {
+            margin: 0;
+            background-color: black;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            overflow: hidden;
+            color: white;
+            font-family: Arial, sans-serif;
+        }
+
+        canvas {
+            background-color: black;
+        }
+
+        button {
+            margin-top: 20px;
+            padding: 10px 20px;
+            font-size: 16px;
+            border: none;
+            border-radius: 10px;
+            background: red;
+            color: white;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        button:hover {
+            background: darkred;
+        }
+    </style>A
+</head>
+
+<body>
+    <!-- Canvas Love -->
+    <canvas id="love" width="600" height="600"></canvas>
+
+    <!-- Tombol kontrol musik -->
+    <button id="music-btn">Play Music</button>
+
+    <!-- Musik -->
+    <audio id="bg-music" loop>
+        <source src="lagu.mp3" type="audio/mpeg">
+    </audio>
+
+    <script>
+        const canvas = document.getElementById("love");
+        const ctx = canvas.getContext("2d");
+        const music = document.getElementById("bg-music");
+        const musicBtn = document.getElementById("music-btn");
+
+        // Fungsi corazon
+        function corazon(n) {
+            let x = 16 * Math.pow(Math.sin(n), 3);
+            let y = 13 * Math.cos(n) - 5 * Math.cos(2 * n) -
+                2 * Math.cos(3 * n) - Math.cos(4 * n);
+            return [x, y];
+        }
+
+        let t = 0;
+        let angle = 0;
+        let hearts = [];
+
+        class MiniHeart {
+            constructor(x, y) {
+                this.x = x;
+                this.y = y;
+                this.size = Math.random() * 20 + 10;
+                this.speed = Math.random() * 2 + 1;
+                this.alpha = 1;
+            }
+            update() {
+                this.y += this.speed;
+                this.alpha -= 0.01;
+            }
+            draw() {
+                ctx.save();
+                ctx.translate(this.x, this.y);
+                ctx.scale(this.size / 50, -this.size / 50);
+                ctx.beginPath();
+                ctx.fillStyle = `rgba(255,0,100,${this.alpha})`;
+                for (let n = 0; n <= 100; n += 5) {
+                    let [x, y] = corazon(n / 10);
+                    ctx.lineTo(x, y);
+                }
+                ctx.fill();
+                ctx.restore();
+            }
+        }
+
+        canvas.addEventListener("click", (e) => {
+            for (let i = 0; i < 10; i++) {
+                hearts.push(new MiniHeart(e.offsetX, e.offsetY));
+            }
+        });
+
+        function drawHeart() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            ctx.save();
+            ctx.translate(canvas.width / 2, canvas.height / 2);
+            ctx.rotate(angle);
+            ctx.scale(10, -10);
+
+            let scale = 1 + 0.2 * Math.sin(t);
+            ctx.scale(scale, scale);
+
+            ctx.fillStyle = "red";
+            ctx.shadowColor = "red";
+            ctx.shadowBlur = 25;
+
+            ctx.beginPath();
+            for (let n = 0; n <= 100; n += 0.5) {
+                let [x, y] = corazon(n / 10);
+                ctx.lineTo(x, y);
+            }
+            ctx.fill();
+            ctx.restore();
+
+            for (let i = hearts.length - 1; i >= 0; i--) {
+                hearts[i].update();
+                hearts[i].draw();
+                if (hearts[i].alpha <= 0) {
+                    hearts.splice(i, 1);
+                }
+            }
+
+            t += 0.1;
+            angle += 0.01;
+            requestAnimationFrame(drawHeart);
+        }
+
+        drawHeart();
+
+        // Kontrol musik dengan tombol
+        let isPlaying = false;
+        musicBtn.addEventListener("click", () => {
+            if (isPlaying) {
+                music.pause();
+                musicBtn.textContent = "Play Music";
+            } else {
+                music.play();
+                musicBtn.textContent = "Pause Music";
+            }
+            isPlaying = !isPlaying;
+        });
+    </script>
+</body>
+
+</html>
